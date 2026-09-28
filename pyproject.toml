@@ -15,8 +15,8 @@ dependencies = [
 
 [project.optional-dependencies]
 browser = ["playwright>=1.40"]
-headers = ["browserforge>=2.0"]
-all = ["playwright>=1.40", "browserforge>=2.0"]
+headers = ["browserforge>=1.2"]
+all = ["playwright>=1.40", "browserforge>=1.2"]
 
 [project.scripts]
 octupus = "octupus.cli:main"
