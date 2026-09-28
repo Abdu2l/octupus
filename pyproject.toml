@@ -1,0 +1,30 @@
+[project]
+name = "elitescraper"
+version = "0.5.1"
+description = "Elite fast generic scraper: async + impersonation + pooled connections + C HTML parsing + spiders"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "curl_cffi>=0.7",
+  "selectolax>=0.3",
+  "pydantic>=2.0",
+  "orjson>=3.9",
+  "lxml>=5.0",
+  "uvloop>=0.19; sys_platform!='win32'",
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.40"]
+headers = ["browserforge>=2.0"]
+all = ["playwright>=1.40", "browserforge>=2.0"]
+
+[project.scripts]
+elitescrape = "elitescraper.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["elitescraper*"]

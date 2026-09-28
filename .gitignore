@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+.devcache/
+dist/
+build/
+*.egg-info/
+out*.jsonl
+out*.csv
+out*.md
