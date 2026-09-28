@@ -10,11 +10,7 @@ detection skips the browser entirely, and `--dev-cache` replays at 1000+ pages/s
 ## Install
 
 ```bash
-git clone https://github.com/Abdu2l/octupus.git
-cd octupus
-python3 -m venv .venv && .venv/bin/pip install -e .
-# optional: browser engine + version-matched headers
-.venv/bin/pip install -e '.[all]' && .venv/bin/playwright install chromium
+git clone https://github.com/Abdu2l/octupus.git && cd octupus && ./install.sh
 ```
 
 ## Run
