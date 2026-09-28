@@ -1,7 +1,7 @@
 import asyncio
 
-from elitescraper.frontier import AutoThrottle, LinkExtractor, ProxyRotator
-from elitescraper.parser import extract_texts
+from octupus.frontier import AutoThrottle, LinkExtractor, ProxyRotator
+from octupus.parser import extract_texts
 
 
 def test_extract_texts_matches_css():

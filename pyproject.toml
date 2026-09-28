@@ -1,5 +1,5 @@
 [project]
-name = "elitescraper"
+name = "octupus"
 version = "0.5.1"
 description = "Elite fast generic scraper: async + impersonation + pooled connections + C HTML parsing + spiders"
 readme = "README.md"
@@ -19,7 +19,8 @@ headers = ["browserforge>=2.0"]
 all = ["playwright>=1.40", "browserforge>=2.0"]
 
 [project.scripts]
-elitescrape = "elitescraper.cli:main"
+octupus = "octupus.cli:main"
+elitescrape = "octupus.cli:main"
 
 [build-system]
 requires = ["setuptools>=61"]
@@ -27,4 +28,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["elitescraper*"]
+include = ["octupus*"]

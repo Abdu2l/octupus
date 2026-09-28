@@ -1,5 +1,5 @@
-from elitescraper.hybrid import ClearanceStore
-from elitescraper.jsdetect import analyze
+from octupus.hybrid import ClearanceStore
+from octupus.jsdetect import analyze
 
 
 def test_jsdetect_next_data():

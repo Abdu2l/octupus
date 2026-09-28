@@ -318,7 +318,7 @@ async def run(args) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="elitescrape", description="Elite fast generic scraper v0.3")
+    ap = argparse.ArgumentParser(prog="octupus", description="Elite fast generic scraper v0.3")
     ap.add_argument("input", nargs="?", default=None, help="text file with one URL per line")
     ap.add_argument("--url", action="append", default=[], help="single URL (repeatable)")
     ap.add_argument("--out", default="out.jsonl", help="output file (.jsonl or .csv)")

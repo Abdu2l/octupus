@@ -17,7 +17,7 @@ def bench(fn, n=30):
 def main():
     from selectolax.parser import HTMLParser
 
-    from elitescraper.parser import extract_texts
+    from octupus.parser import extract_texts
 
     try:
         from scrapling import Selector as S

@@ -17,7 +17,7 @@ URLS = [
 
 
 async def bench_ours(urls: list[str], concurrency: int = 20):
-    from elitescraper.fetcher import fetch_all
+    from octupus.fetcher import fetch_all
 
     t0 = time.monotonic()
     res = await fetch_all(urls, concurrency=concurrency, per_host=10, timeout=20)

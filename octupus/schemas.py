@@ -1,4 +1,4 @@
-"""Structured output schemas for elitescraper."""
+"""Structured output schemas for octupus."""
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 

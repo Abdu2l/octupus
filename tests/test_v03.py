@@ -1,6 +1,6 @@
-from elitescraper.adaptive import AdaptiveDB
-from elitescraper.robots import is_blocked, parse_sitemap
-from elitescraper.selector import Selector
+from octupus.adaptive import AdaptiveDB
+from octupus.robots import is_blocked, parse_sitemap
+from octupus.selector import Selector
 
 
 def test_selector_css_xpath_text():

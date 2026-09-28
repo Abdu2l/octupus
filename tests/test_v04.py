@@ -1,6 +1,6 @@
-from elitescraper.browser import cf_cleared, detect_cf_type
-from elitescraper.devcache import DevCache
-from elitescraper.selector import Selector
+from octupus.browser import cf_cleared, detect_cf_type
+from octupus.devcache import DevCache
+from octupus.selector import Selector
 
 
 def test_cf_detect_ctype():

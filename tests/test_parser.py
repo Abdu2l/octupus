@@ -1,5 +1,5 @@
-from elitescraper.frontier import normalize_urls
-from elitescraper.parser import parse_html
+from octupus.frontier import normalize_urls
+from octupus.parser import parse_html
 
 
 def test_normalize_dedupes():

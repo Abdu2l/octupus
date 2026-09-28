@@ -10,10 +10,10 @@ detection skips the browser entirely, and `--dev-cache` replays at 1000+ pages/s
 ## Run
 
 ```bash
-.venv/bin/elitescrape urls.txt --out out.jsonl --concurrency 150
-.venv/bin/elitescrape urls.txt --out out.jsonl --hybrid --browser --browser-on-block
-.venv/bin/elitescrape --url https://example.com --out out.md --markdown
-.venv/bin/elitescrape sitemaps.txt --out pages.jsonl --sitemap --max-pages 50
+.venv/bin/octupus urls.txt --out out.jsonl --concurrency 150
+.venv/bin/octupus urls.txt --out out.jsonl --hybrid --browser --browser-on-block
+.venv/bin/octupus --url https://example.com --out out.md --markdown
+.venv/bin/octupus sitemaps.txt --out pages.jsonl --sitemap --max-pages 50
 .venv/bin/python benchmarks_battle.py
 .venv/bin/python benchmarks_static.py --n 10
 ```
@@ -21,10 +21,10 @@ detection skips the browser entirely, and `--dev-cache` replays at 1000+ pages/s
 ## Push to GitHub
 
 ```bash
-cd /home/abdul/elitescraper
-gh repo create elitescraper --public --source=. --push
+cd /home/abdul/octupus
+gh repo create octupus --public --source=. --push
 # without gh: create empty repo on github.com, then:
-# git remote add origin git@github.com:YOU/elitescraper.git
+# git remote add origin git@github.com:YOU/octupus.git
 # git push -u origin master
 ```
 

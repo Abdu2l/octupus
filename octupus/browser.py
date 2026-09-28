@@ -1,7 +1,7 @@
 """Browser engine: Playwright tab pool with stealth + Cloudflare handling + XHR capture.
 
 Static path stays dependency-free. Only imported when --browser is used.
-Install: pip install 'elitescraper[browser]' && playwright install chromium
+Install: pip install 'octupus[browser]' && playwright install chromium
 """
 import asyncio
 import random
@@ -218,7 +218,7 @@ class BrowserPool:
         try:
             from playwright.async_api import async_playwright
         except ImportError as e:
-            raise RuntimeError("playwright not installed: pip install 'elitescraper[browser]'") from e
+            raise RuntimeError("playwright not installed: pip install 'octupus[browser]'") from e
         self._pw = async_playwright()
         pw = await self._pw.start()
         self._pw_instance = pw
