@@ -16,7 +16,11 @@ git clone https://github.com/Abdu2l/octupus.git && cd octupus && ./install.sh
 ## Run
 
 ```bash
+# static pages (fast path)
 .venv/bin/octupus urls.txt --out out.jsonl --concurrency 150
+# JS-rendered pages (browser renders, e.g. dashboards like screenContent)
+.venv/bin/octupus --url https://example.com --out js.jsonl --browser --browser-on-block
+# Cloudflare-protected (solve once per domain, continue at static speed)
 .venv/bin/octupus urls.txt --out out.jsonl --hybrid --browser --browser-on-block
 .venv/bin/octupus --url https://example.com --out out.md --markdown
 .venv/bin/octupus sitemaps.txt --out pages.jsonl --sitemap --max-pages 50
