@@ -65,11 +65,11 @@ async def run(args) -> int:
         print(f"sitemap: {len(urls)} pages", file=sys.stderr)
     # --shopify mode: treat inputs as shop domains
     if args.shopify:
-        from .spiders import ShopifySpider
+        from .tentacles import ShopTentacle
 
         all_items: list[dict] = []
         for shop in urls:
-            sp = ShopifySpider()
+            sp = ShopTentacle()
             sp.target_website = shop
             sp.max_products = args.max_pages
             all_items.extend(await sp.run(concurrency=20, per_host=5, timeout=args.timeout))

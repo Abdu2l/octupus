@@ -1,7 +1,7 @@
 [project]
 name = "octupus"
 version = "0.5.1"
-description = "Elite fast generic scraper: async + impersonation + pooled connections + C HTML parsing + spiders"
+description = "Octupus: blazing fast CLI scraper with tentacle crawls, hybrid anti-bot and RAG markdown"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

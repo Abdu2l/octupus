@@ -201,34 +201,40 @@ async def fetch_stream(
     host_limiter = PerHostLimiter(per_host)
     throttle = AutoThrottle(enabled=autothrottle, base=base_delay)
     rotator = ProxyRotator(proxies)
-    # max_clients keeps H2/TLS/DNS pooling hot; trust_env=False skips getenv per request
+    # Session POOL (not one shared session): curl_cffi async doesn't like many
+    # concurrent requests on a single session; separate sessions handshake more
+    # but never stall each other. Pool of 8 = reuse + true parallelism.
+    POOL_N = 8
     _sess_kw: dict = {"max_clients": max(50, concurrency), "trust_env": False}
     if cookies:
         _sess_kw["cookies"] = cookies
+    sessions: list = []
     try:
-        session = AsyncSession(impersonate=impersonate or "chrome", timeout=timeout, **_sess_kw)
+        for _ in range(POOL_N):
+            try:
+                sessions.append(AsyncSession(impersonate=impersonate or "chrome", timeout=timeout, **_sess_kw))
+            except TypeError:
+                sessions.append(AsyncSession(impersonate=impersonate or "chrome", timeout=timeout))
     except TypeError:
-        try:
-            session = AsyncSession(impersonate=impersonate or "chrome", timeout=timeout, cookies=cookies or {})
-        except TypeError:
-            session = AsyncSession(impersonate=impersonate or "chrome", timeout=timeout)
+        sessions = [AsyncSession(impersonate=impersonate or "chrome", timeout=timeout)]
 
-    async def _one(url: str):
+    async def _one(url: str, idx: int):
         async with gate:
             return await _fetch_one(
-                session, url, timeout, retries, host_limiter, throttle, rotator,
+                sessions[idx % len(sessions)], url, timeout, retries, host_limiter, throttle, rotator,
                 stealth_headers, google_search, impersonate, True, cookies, user_agent,
             )
 
     try:
-        tasks = [asyncio.ensure_future(_one(u)) for u in urls]
+        tasks = [asyncio.ensure_future(_one(u, i)) for i, u in enumerate(urls)]
         for fut in asyncio.as_completed(tasks):
             yield await fut
     finally:
-        try:
-            await session.close()
-        except Exception:
-            pass
+        for s in sessions:
+            try:
+                await s.close()
+            except Exception:
+                pass
 
 
 async def fetch_all(

@@ -178,7 +178,7 @@ class LinkExtractor:
 
 
 class SeenDB:
-    """SQLite seen-URL store for --resume (pause/resume like Scrapling spiders)."""
+    """SQLite seen-URL store for --resume (pause/resume crawls)."""
 
     def __init__(self, path: str):
         self.path = path

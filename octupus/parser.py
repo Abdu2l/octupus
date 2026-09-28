@@ -111,8 +111,10 @@ def parse_html(
     if extract_links:
         try:
             base = final_url or url
+            # fast path: absolute URLs skip urljoin; validate once at the end
+            raw_links: list[tuple[str, str]] = []
             for a in tree.css("a[href]"):
-                if len(links) >= max_links:
+                if len(raw_links) >= max_links:
                     break
                 try:
                     raw_href = (a.attributes.get("href") or "").strip()
@@ -120,15 +122,19 @@ def parse_html(
                     continue
                 if not raw_href or raw_href.startswith(("#", "javascript:", "mailto:", "tel:")):
                     continue
-                try:
-                    href = urljoin(base, raw_href)
-                except Exception:
-                    continue
+                if raw_href.startswith(("http://", "https://")):
+                    href = raw_href
+                else:
+                    try:
+                        href = urljoin(base, raw_href)
+                    except Exception:
+                        continue
                 try:
                     text = a.text(strip=True) or ""
                 except Exception:
                     text = ""
-                links.append(Link(text=text[:200], href=href[:2000]))
+                raw_links.append((text[:200], href[:2000]))
+            links = [Link.model_construct(text=t, href=h) for t, h in raw_links]
         except Exception:
             pass
 
