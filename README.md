@@ -27,12 +27,15 @@ python3 -m venv .venv && .venv/bin/pip install -e .
 .venv/bin/python benchmarks_full.py
 ```
 
-## Measured (local, see BENCHMARKS.md)
+## Measured (local, see BENCHMARKS.md for method + charts)
 
 ```
 CSS text x5000:   octupus 19.2ms | scrapling 34.6ms | parsel 32.7ms | bs4 211.8ms
+XPath x5000:      octupus 20.2ms | lxml 21.3ms | scrapling 36.2ms | parsel 40.5ms
 Full extract:     lxml 0.63ms | parsel 1.10ms | octupus 4.0ms | bs4 8.05ms
-Fetch localhost:  tie (~0.1-1.1s per 30 pages both, server noise dominates)
+Text search:      octupus 8.1ms | scrapling 22.1ms (2.7x)
+JSON 200 rows:    orjson 4.5ms vs stdlib 46.8ms (10.4x, used in to_jsonl)
+Fetch localhost:  tie (both curl-based, toy-server noise dominates)
 ```
 
 Octupus wins CSS-text, loses full-extract to raw lxml/parsel (we resolve

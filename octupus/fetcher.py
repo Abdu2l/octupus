@@ -155,20 +155,25 @@ async def _fetch_one(
             if status >= 400 and status not in RETRYABLE_STATUS:
                 return FetchResult(url=url, status=status, html=text[:2_000_000], final_url=final_url)
             return FetchResult(url=url, status=status, html=text[:2_000_000], final_url=final_url)
-        except RequestException:
+        except RequestException as e:
             await throttle.mark(url, time.monotonic() - t0, 503)
             if attempt < retries:
                 attempt += 1
-                await asyncio.sleep(1.0 + random.uniform(0, 0.3))
+                # local blips (reset/refused/closed) retry fast; real blocks wait 1s
+                msg = str(e).lower()
+                fast = any(k in msg for k in ("reset", "refused", "closed", "eof", "broken"))
+                await asyncio.sleep(0.2 + random.uniform(0, 0.1) if fast else 1.0 + random.uniform(0, 0.3))
                 continue
             return FetchResult(url=url, status=0, html="", final_url=url, error="request_error")
         except Exception as e:
             name = type(e).__name__.lower()
+            msg = str(e).lower()
             retryable = any(k in name for k in ("timeout", "connect", "resolve", "closed", "reset", "proxy"))
             await throttle.mark(url, time.monotonic() - t0, 503 if retryable else 400)
             if retryable and attempt < retries:
                 attempt += 1
-                await asyncio.sleep(1.0 + random.uniform(0, 0.3))
+                fast = any(k in msg for k in ("reset", "refused", "closed", "eof", "broken")) or "timeout" in name
+                await asyncio.sleep(0.2 + random.uniform(0, 0.1) if fast else 1.0 + random.uniform(0, 0.3))
                 continue
             return FetchResult(url=url, status=0, html="", final_url=url, error=f"{type(e).__name__}"[:120])
         finally:

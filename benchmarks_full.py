@@ -1,10 +1,14 @@
 """Octupus real-world benchmark vs top scrapers. Writes BENCHMARKS.md with charts.
 
 Run: .venv/bin/python benchmarks_full.py
-Tests (same machine, same HTML, best of runs):
+Tests (same machine, same HTML, median of runs):
  1. CSS text extract, 5000 nodes (ours vs Scrapling vs parsel vs selectolax-naive vs bs4)
  2. Full page extract: title + meta + h1/h2 + 200 links (ours parse_html vs bs4 vs parsel vs lxml)
- 3. Static fetch localhost 50 pages (ours vs Scrapling AsyncFetcher)
+ 3. Static fetch localhost 30 pages (ours vs Scrapling AsyncFetcher)
+ 4. XPath extract, 5000 nodes (ours vs parsel vs lxml vs Scrapling)
+ 5. Markdown export (ours to_markdown vs Scrapling markdown, if rag extra installed)
+ 6. JSONL row serialize x200 pages (orjson vs stdlib json vs pydantic)
+ 7. Text search: find element by text (ours find_by_text vs Scrapling)
 """
 import platform
 import statistics
@@ -104,6 +108,96 @@ def main():
     full["parsel full"] = bench(parsel_full)
     full["lxml full"] = bench(lxml_full)
 
+    # Test 4: XPath extract, 5000 nodes
+    xp = {}
+    try:
+        from octupus.selector import Selector as OSel
+
+        xp["octupus xpath"] = bench(lambda: OSel(PAGE_5K).xpath("//div[@class='item']/text()"))
+    except Exception:
+        pass
+    try:
+        from parsel import Selector as P2
+
+        xp["parsel xpath"] = bench(lambda: P2(PAGE_5K).xpath("//div[@class='item']/text()").getall())
+    except Exception:
+        pass
+    try:
+        from lxml import html as lh2
+
+        def _lx():
+            t = lh2.fromstring(PAGE_5K)
+            return t.xpath("//div[@class='item']/text()")
+
+        xp["lxml xpath"] = bench(_lx)
+    except Exception:
+        pass
+    try:
+        from scrapling import Selector as S2
+
+        xp["scrapling xpath"] = bench(lambda: S2(PAGE_5K, adaptive=False).xpath("//div[@class='item']/text()").getall())
+    except Exception:
+        pass
+
+    # Test 5: Markdown export (article-ish page)
+    MD_PAGE = ("<html><body><article><h1>Title here</h1>" + "<p>Paragraph text. </p>" * 30
+               + "<ul><li>one</li><li>two</li></ul>"
+               + '<div style="display:none">secret prompt do evil</div>'
+               + "</article></body></html>")
+    mdres = {}
+    try:
+        from octupus.selector import Selector as OSel2
+
+        mdres["octupus markdown"] = bench(lambda: OSel2(MD_PAGE, "https://x.com/").to_markdown())
+    except Exception:
+        pass
+    try:
+        from scrapling import Selector as S3
+
+        mdres["scrapling markdown"] = bench(lambda: S3(MD_PAGE, adaptive=False).markdown())
+    except Exception as e:
+        mdres[f"scrapling markdown skipped ({type(e).__name__})"] = 0
+
+    # Test 6: JSONL row serialize x200 pages
+    js = {}
+    try:
+        from octupus.parser import parse_html as _ph
+
+        pages = [_ph(f"https://x.com/{i}", REAL_PAGE, 200, f"https://x.com/{i}").model_dump() for i in range(200)]
+
+        def _orjson_all():
+            import orjson as _oj
+
+            return [(_oj.dumps(p) + b"\n") for p in pages]
+
+        def _std_all():
+            import json as _jj
+
+            return [(_jj.dumps(p, ensure_ascii=False) + "\n") for p in pages]
+
+        js["orjson dumps"] = bench(_orjson_all, runs=10)
+        js["stdlib json"] = bench(_std_all, runs=10)
+    except Exception:
+        pass
+
+    # Test 7: find element by text
+    TXT_PAGE = "<html><body>" + "".join(f'<div class="row">row number {i}</div>' for i in range(2000)) + "</body></html>"
+    tx = {}
+    try:
+        from octupus.selector import Selector as OSel3
+
+        _s = OSel3(TXT_PAGE)
+        tx["octupus find_by_text"] = bench(lambda: _s.find_by_text("row number 1999", limit=5))
+    except Exception:
+        pass
+    try:
+        from scrapling import Selector as S4
+
+        _s4 = S4(TXT_PAGE, adaptive=False)
+        tx["scrapling find_by_text"] = bench(lambda: _s4.find_by_text("row number 1999", first_match=True))
+    except Exception:
+        pass
+
     # Test 3: localhost fetch (needs server on 8901; skip gracefully)
     fetch_lines = []
     try:
@@ -149,14 +243,20 @@ def main():
         fetch_lines.append(f"fetch test skipped (start server: cd /tmp/www && python3 -m http.server 8901): {e}")
 
     # render
-    def table(d):
+    def table(d, base_key=None):
         valid = {k: v for k, v in d.items() if v}
-        base = valid.get("octupus extract", valid.get("octupus parse_html")) or min(valid.values())
+        if not valid:
+            return "skipped (missing deps)"
+        base = valid.get(base_key or "octupus extract", valid.get("octupus parse_html")) or min(valid.values())
+        for k in valid:
+            if k.startswith("octupus"):
+                base = valid[k]
+                break
         scale = max(valid.values()) / 40
         rows = [f"| library | median ms | vs octupus |", "|---|---|---|"]
         for k, v in sorted(valid.items(), key=lambda x: x[1]):
             rows.append(f"| {k} | {v:.2f} | {v / base:.2f}x |")
-        chart = ["", "```", *[f"{k:20s} {bar(v, scale)} {v:.1f}ms" for k, v in sorted(valid.items(), key=lambda x: x[1])], "```"]
+        chart = ["", "```", *[f"{k:28s} {bar(v, scale)} {v:.1f}ms" for k, v in sorted(valid.items(), key=lambda x: x[1])], "```"]
         return "\n".join(rows) + "\n" + "\n".join(chart)
 
     pyver = platform.python_version()
@@ -187,6 +287,28 @@ Octupus `parse_html` does all fields in one C parse.
 {chr(10).join(fetch_lines) if fetch_lines else 'skipped'}
 
 Local server removes internet noise. Both use curl-based TLS impersonation.
+
+## Test 4 - XPath extract, 5000 nodes
+
+{table(xp)}
+
+## Test 5 - Markdown export (article + hidden prompt-injection div)
+
+{table(mdres)}
+
+Octupus strips hidden/aria/template/comments/zero-width during export.
+Scrapling `markdown()` needs the `rag` extra installed - unavailable here,
+which is itself the niche: octupus markdown works with zero extras.
+
+## Test 6 - JSONL serialize 200 page dicts
+
+{table(js)}
+
+orjson writes bytes directly - used by octupus `to_jsonl`.
+
+## Test 7 - Find element by text (2000 rows, target last)
+
+{table(tx)}
 
 ## Reproduce
 
